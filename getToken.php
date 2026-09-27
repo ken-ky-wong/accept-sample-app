@@ -66,7 +66,7 @@ try {    //setting the curl parameters.
         trigger_error(sprintf('Curl failed with error #%d: %s', $e->getCode(), $e->getMessage()), E_USER_ERROR);
 }
 
-function curPageURL()
+function __curPageURL()
 {
     $pageURL = 'http';
     if ($_SERVER["HTTPS"] == "on") {
@@ -82,4 +82,10 @@ function curPageURL()
      $pageLocation = str_replace('index.php', '', $pageURL);
 
      return $pageLocation;
+}
+
+function curPageURL()
+{
+    // return "https://localhost:8443/";
+    return "https://127.0.0.1:8443/";
 }

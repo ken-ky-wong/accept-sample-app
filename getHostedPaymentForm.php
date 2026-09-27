@@ -16,9 +16,6 @@ $xmlStr = <<<XML
     </transactionRequest>
     <hostedPaymentSettings>
         <setting>
-            <settingName>hostedPaymentIFrameCommunicatorUrl</settingName>
-        </setting>
-        <setting>
             <settingName>hostedPaymentButtonOptions</settingName>
             <settingValue>{"text": "Pay"}</settingValue>
         </setting>
@@ -61,11 +58,18 @@ $xml = simplexml_load_string($xmlStr, 'SimpleXMLElement', LIBXML_NOWARNING);
 $xml->merchantAuthentication->addChild('name', getenv('API_LOGIN_ID'));
 $xml->merchantAuthentication->addChild('transactionKey', getenv('TRANSACTION_KEY'));
 
-$commUrl = json_encode(array('url' => thisPageURL()."IFrameCommunicator.html" ), JSON_UNESCAPED_SLASHES);
-$xml->hostedPaymentSettings->setting[0]->addChild('settingValue', $commUrl);
+$retUrl = json_encode(array(
+    "showReceipt" => false,
+    'url' => thisPageURL()."receipt.php",
+    "urlText" => "Continue to receipt",
+    "cancelUrl" => thisPageURL()."cancelled.php",
+    "cancelUrlText" => "Cancel"
+), JSON_UNESCAPED_SLASHES);
+$xml->hostedPaymentSettings->setting[1]->addChild('settingValue', $retUrl);
 
-$retUrl = json_encode(array("showReceipt" => false , 'url' => thisPageURL()."return.html", "urlText"=>"Continue to site", "cancelUrl" => thisPageURL()."return.html", "cancelUrlText" => "Cancel" ), JSON_UNESCAPED_SLASHES);
-$xml->hostedPaymentSettings->setting[2]->addChild('settingValue', $retUrl);
+// error_log('DEBUG pageLocation=' . $pageLocation);
+error_log('DEBUG retUrl=' . $retUrl);
+
 
 $url = "https://apitest.authorize.net/xml/v1/request.api";
 
@@ -93,12 +97,12 @@ try {   //setting the curl parameters.
     if (false === $content) {
             throw new Exception(curl_error($ch), curl_errno($ch));
     }
-    curl_close($ch);
+    // curl_close($ch); // deprecated since 8.5
 } catch (Exception $e) {
         trigger_error(sprintf('Curl failed with error #%d: %s', $e->getCode(), $e->getMessage()), E_USER_ERROR);
 }
 
-function thisPageURL()
+function __thisPageURL()
 {
     $pageURL = 'http';
     if ($_SERVER["HTTPS"] == "on") {
@@ -114,4 +118,10 @@ function thisPageURL()
     $pageLocation = str_replace('index.php', '', $pageURL);
 
     return $pageLocation;
+}
+
+function thisPageURL()
+{
+    // return "https://localhost:8443/";
+    return "https://127.0.0.1:8443/";
 }

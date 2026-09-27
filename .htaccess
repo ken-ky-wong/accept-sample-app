@@ -1,0 +1,3 @@
+# works only if Apache is configured to allow rewrite rules in that directory. If your server is not using Apache or rewrite rules are disabled, use /callback.php directly instead.
+RewriteEngine On
+RewriteRule ^callback/?$ callback.php [L,QSA]
