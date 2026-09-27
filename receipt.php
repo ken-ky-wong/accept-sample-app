@@ -1,10 +1,11 @@
 <?php
-// Accept Hosted returns the transaction result to this URL after a successful payment.
-$response = array_merge($_GET, $_POST);
+session_start();
 
-function receiptValue($key, $response)
-{
-    return isset($response[$key]) ? htmlspecialchars((string) $response[$key], ENT_QUOTES, 'UTF-8') : 'Not provided';
+$orderId = isset($_GET['order']) ? (string) $_GET['order'] : '';
+$order = isset($_SESSION['hostedPaymentOrders'][$orderId]) ? $_SESSION['hostedPaymentOrders'][$orderId] : null;
+
+if ($order !== null) {
+    $_SESSION['hostedPaymentOrders'][$orderId]['status'] = 'awaiting_confirmation';
 }
 ?>
 <!DOCTYPE html>
@@ -20,13 +21,17 @@ function receiptValue($key, $response)
         <div class="panel panel-success">
             <div class="panel-heading"><h1 class="panel-title">Payment Receipt</h1></div>
             <div class="panel-body">
-                <p>Your payment was returned from the hosted payment page.</p>
-                <dl class="dl-horizontal">
-                    <dt>Transaction ID</dt><dd><?php echo receiptValue('transId', $response); ?></dd>
-                    <dt>Response code</dt><dd><?php echo receiptValue('responseCode', $response); ?></dd>
-                    <dt>Reason code</dt><dd><?php echo receiptValue('responseReasonCode', $response); ?></dd>
-                    <dt>Response</dt><dd><?php echo receiptValue('responseReasonText', $response); ?></dd>
-                </dl>
+                <?php if ($order !== null): ?>
+                    <p>We received your return from the hosted payment page.</p>
+                    <dl class="dl-horizontal">
+                        <dt>Order reference</dt><dd><?php echo htmlspecialchars($orderId, ENT_QUOTES, 'UTF-8'); ?></dd>
+                        <dt>Amount</dt><dd>$<?php echo htmlspecialchars($order['amount'], ENT_QUOTES, 'UTF-8'); ?></dd>
+                        <dt>Status</dt><dd>Awaiting transaction confirmation</dd>
+                    </dl>
+                    <p class="text-muted">The redirect does not include transaction details. Confirm payment status from an Authorize.Net webhook before fulfilling the order.</p>
+                <?php else: ?>
+                    <p class="text-warning">This return link does not match an active order in this browser session.</p>
+                <?php endif; ?>
                 <a class="btn btn-primary" href="index.php">Return to the app</a>
             </div>
         </div>

@@ -58,11 +58,14 @@ $xml = simplexml_load_string($xmlStr, 'SimpleXMLElement', LIBXML_NOWARNING);
 $xml->merchantAuthentication->addChild('name', getenv('API_LOGIN_ID'));
 $xml->merchantAuthentication->addChild('transactionKey', getenv('TRANSACTION_KEY'));
 
+$orderId = isset($hostedPaymentOrderId) ? (string) $hostedPaymentOrderId : 'INV-12345';
+$xml->transactionRequest->order->invoiceNumber = $orderId;
+
 $retUrl = json_encode(array(
     "showReceipt" => false,
-    'url' => thisPageURL()."receipt.php",
+    'url' => thisPageURL()."receipt.php?order=" . rawurlencode($orderId),
     "urlText" => "Continue to receipt",
-    "cancelUrl" => thisPageURL()."cancelled.php",
+    "cancelUrl" => thisPageURL()."cancelled.php?order=" . rawurlencode($orderId),
     "cancelUrlText" => "Cancel"
 ), JSON_UNESCAPED_SLASHES);
 $xml->hostedPaymentSettings->setting[1]->addChild('settingValue', $retUrl);
