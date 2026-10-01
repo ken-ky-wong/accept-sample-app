@@ -94,15 +94,19 @@ try {   //setting the curl parameters.
     curl_setopt($ch, CURLOPT_DNS_USE_GLOBAL_CACHE, false);
     //curl_setopt($ch, CURLOPT_PROXY, 'userproxy.visa.com:80');
     $content = curl_exec($ch);
+    if (false === $content) {
+        throw new Exception(curl_error($ch), curl_errno($ch));
+    }
     $content = str_replace('xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"', '', $content);
 
     $hostedPaymentResponse = new SimpleXMLElement($content);
-    if (false === $content) {
-            throw new Exception(curl_error($ch), curl_errno($ch));
-    }
     // curl_close($ch); // deprecated since 8.5
-} catch (Exception $e) {
-        trigger_error(sprintf('Curl failed with error #%d: %s', $e->getCode(), $e->getMessage()), E_USER_ERROR);
+} catch (Throwable $e) {
+    throw new RuntimeException(
+        sprintf('PHP Accept Hosted token request failed: %s', $e->getMessage()),
+        (int) $e->getCode(),
+        $e
+    );
 }
 
 function __thisPageURL()
